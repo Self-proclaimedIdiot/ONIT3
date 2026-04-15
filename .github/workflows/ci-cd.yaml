@@ -2,14 +2,14 @@ name: CI/CD Pipeline
 
 on:
   push:
-    [cite_start]branches: [ master ] [cite: 80]
+    branches: [ master ]
 
 jobs:
   test:
-    [cite_start]name: Run Unit Tests [cite: 23]
-    [cite_start]runs-on: ubuntu-latest [cite: 24]
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
     steps:
-      - [cite_start]uses: actions/checkout@v4 [cite: 27]
+      - uses: actions/checkout@v4
       
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -19,30 +19,29 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - [cite_start]name: Run Tests [cite: 86]
-        run: dotnet test --no-build --verbosity normal
+      - name: Run Tests
+        run: dotnet test --verbosity normal
         env:
-          # Передаем строку подключения из секретов GitHub для тестов (если нужно) [cite: 113]
           CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
 
   build:
-    [cite_start]name: Build and Push Image [cite: 87]
-    [cite_start]needs: test # Сборка начнется только если тесты прошли (зеленые) [cite: 44]
+    name: Build and Push Image
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      [cite_start]packages: write [cite: 48]
+      packages: write
     steps:
-      - [cite_start]uses: actions/checkout@v4 [cite: 50]
+      - uses: actions/checkout@v4
       
-      - [cite_start]name: Log in to GHCR [cite: 91]
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - [cite_start]name: Build and push [cite: 93]
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
