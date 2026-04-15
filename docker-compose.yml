@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: aspnet_app
+    ports:
+      - "5000:8080"
+    env_file:
+      - .env
+    environment:
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
+    depends_on:
+      db:
+        condition: service_healthy # Приложение начнет запуск только когда база будет готова
+    restart: on-failure
+
+volumes:
+  pgdata:
